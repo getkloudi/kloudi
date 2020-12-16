@@ -1,0 +1,103 @@
+version: "3.8"
+networks:
+  kloudi-network:
+    name: kloudi-network
+    driver: bridge
+
+services:
+  kloudi-redis:
+    container_name: kloudi-redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      retries: 5
+    image: "redis:alpine"
+    restart: always
+    networks:
+      - kloudi-network
+
+  kloudi-db:
+    container_name: kloudi-db
+    environment:
+      - MONGO_INITDB_DATABASE=kloudi-db
+      - ALLOW_EMPTY_PASSWORD=yes
+      - MONGODB_EXTRA_FLAGS=--wiredTigerCacheSizeGB=2
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongo kloudi-db:27017/test --quiet
+      interval: 3600s
+      retries: 5
+      start_period: 40s
+    image: mongo:latest
+    networks:
+      - kloudi-network
+    restart: always
+    volumes:
+      - $HOME/.kloudi/db:/data/db
+
+  kloudi-pepper:
+    container_name: kloudi-pepper
+    healthcheck:
+      test: curl -f http://kloudi-pepper:4017/tasks && curl -f http://kloudi-pepper:4017/webhooks
+      interval: 3600s
+      retries: 5
+    image: kloudi/pepper:latest
+    depends_on:
+      - kloudi-db
+      - kloudi-redis
+    restart: always
+    networks:
+      - kloudi-network
+
+  kloudi-ngrok-tunnel:
+    container_name: kloudi-ngrok-tunnel
+    image: wernight/ngrok
+    environment:
+      NGROK_AUTH: ${NGROK_AUTH}
+      NGROK_SUBDOMAIN: ${NGROK_SUBDOMAIN}
+      NGROK_PROTOCOL: http
+      NGROK_PORT: kloudi-pepper:4017
+    depends_on:
+      - kloudi-db
+      - kloudi-pepper
+      - kloudi-redis
+    ports:
+      - 4019:4040
+    restart: always
+    networks:
+      - kloudi-network
+
+
+  kloudi-minion-integrations-io:
+    container_name: kloudi-minion-integrations-io
+    healthcheck:
+      test: curl -f http://kloudi-minion-integrations-io:4013/health-check
+      interval: 3600s
+      retries: 5
+    image: kloudi/minion-integrations-io:latest
+    depends_on:
+      - kloudi-db
+      - kloudi-redis
+    restart: always
+    networks:
+      - kloudi-network
+
+  kloudi-api:
+    container_name: kloudi-api
+    image: kloudi/api:latest
+    depends_on:
+      - kloudi-db
+      - kloudi-redis
+      - kloudi-minion-integrations-io
+      - kloudi-pepper
+    restart: always
+    ports:
+      - 4000:4000
+    networks:
+      - kloudi-network
+
+  watchtower:
+    container_name: kloudi-watchtower
+    image: containrrr/watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: kloudi-minion-integrations-io kloudi-pepper kloudi-api --interval 604800
+    restart: unless-stopped
