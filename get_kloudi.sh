@@ -12,7 +12,7 @@ set -u
 DEFAULT_VERSION="latest"
 VERSION=${VERSION:-$DEFAULT_VERSION}
 
-APP_DOWNLOAD_URL="https://github.com/kloudi-tech/local/releases/download/$VERSION/Kloudi-1.0.0.dmg"
+APP_DOWNLOAD_URL="https://github.com/kloudi-tech/local/releases/download/$VERSION/Kloudi.dmg"
 BACKEND_DOWNLOAD_URL="https://github.com/kloudi-tech/local/releases/download/$VERSION/docker-compose.yml"
 
 KLOUDI_HOME=$HOME/.kloudi
@@ -177,7 +177,7 @@ HTTP_STATUS_CODE=$(echo $HTTP_RESPONSE | tr -d '\n' | sed -e 's/.*HTTPSTATUS://'
 if ((HTTP_STATUS_CODE == 200)); then
     print_console "Kloudi is successfully installed on your system."
     print_green "Starting Kloudi 🚀 3..2..1.."
-    open -n ./Kloudi.app --args -AppCommandLineArg
+    open -n /Applications/Kloudi.app --args -AppCommandLineArg
 else
     catch_all_error "Boom "
 fi
