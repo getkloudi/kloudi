@@ -93,6 +93,8 @@ services:
       - 4000:4000
     networks:
       - kloudi-network
+    volumes:
+      - $HOME/.kloudi/.secret:/kloudi/.auth
 
   watchtower:
     container_name: kloudi-watchtower
