@@ -94,7 +94,7 @@ function set_os_version() {
         OS_MAJOR_VERSION=$(sw_vers -productVersion | cut -d'.' -f1)
         OS_MINOR_VERSION=$(sw_vers -productVersion | cut -d'.' -f2)
         OS_VERSION=$OS_MAJOR_VERSION.$OS_MINOR_VERSION
-        diff=$(echo "($OS_VERSION>$REQUIRED_OS_VERSION)" | bc -l)
+        diff=$(echo "($OS_VERSION>=$REQUIRED_OS_VERSION)" | bc -l)
         if ((diff == 1)); then
             continue
         else
@@ -165,10 +165,10 @@ docker-compose -f $KLOUDI_HOME/kloudi-backend.yml up -d
 print_green "Installing Kloudi app..."
 rm -rf ./$APP_DMG /Applications/Kloudi.app
 $cmd_real_user curl -sSL $APP_DOWNLOAD_URL -o $APP_DMG
-$sudo_cmd hdiutil detach "/Voumes/Kloudi" >/dev/null 2>&1 || true
-$sudo_cmd hdiutil attach $APP_DMG -mountpoint "/Volumes/Kloudi" >/dev/null
-$sudo_cmd cd / && cp -rf /Volumes/Kloudi/Kloudi.app /Applications
-$sudo_cmd hdiutil detach "/Volumes/Kloudi" >/dev/null
+hdiutil detach "/Voumes/Kloudi" >/dev/null 2>&1 || true
+hdiutil attach $APP_DMG -mountpoint "/Volumes/Kloudi" >/dev/null
+cd / && cp -rf /Volumes/Kloudi/Kloudi.app /Applications
+hdiutil detach "/Volumes/Kloudi" >/dev/null
 rm -rf ./$APP_DMG
 
 HTTP_RESPONSE=$(curl --silent --write-out "HTTPSTATUS:%{http_code}" -X GET http://0.0.0.0:4000/)
@@ -177,7 +177,7 @@ HTTP_STATUS_CODE=$(echo $HTTP_RESPONSE | tr -d '\n' | sed -e 's/.*HTTPSTATUS://'
 if ((HTTP_STATUS_CODE == 200)); then
     print_console "Kloudi is successfully installed on your system."
     print_green "Starting Kloudi 🚀 3..2..1.."
-    open -n /Applications/Kloudi.app --args -AppCommandLineArg
+    open -a /Applications/Kloudi.app
 else
     catch_all_error "Boom "
 fi
