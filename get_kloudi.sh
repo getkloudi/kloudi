@@ -176,7 +176,7 @@ HTTP_STATUS_CODE=$(echo $HTTP_RESPONSE | tr -d '\n' | sed -e 's/.*HTTPSTATUS://'
 
 if ((HTTP_STATUS_CODE == 200)); then
     print_console "Kloudi is successfully installed on your system."
-    print_green "Starting Kloudi 🚀 3..2..1.."
+    print_green "Starting Kloudi in 3..2..1.. 🚀"
     open -a /Applications/Kloudi.app
 else
     catch_all_error "Boom "
