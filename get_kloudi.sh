@@ -19,7 +19,6 @@ KLOUDI_HOME=$HOME/.kloudi
 OS_VERSION=
 
 APP_DMG="Kloudi.dmg"
-LOGFILE="$KLOUDI_HOME/kloudi-install.log"
 
 #######################################################################
 # Error reporting helpers
@@ -34,20 +33,20 @@ function catch_all_error() {
     printf "\033[31m$ERROR_MESSAGE
 It looks like you hit an issue when trying to install Kloudi.
 Troubleshooting and basic usage information for the Agent are available at. Please send an email to hello@kloudi.tech
-with the contents of kloudi-install.log and we'll do our very best to help you
+with the screenshot of your terminal logs and we'll do our very best to help you
 solve your problem.\n\033[0m\n"
 }
 
 function print_console() {
-    printf "%s\n" "$*" | tee -a "$LOGFILE" >&3
+    printf "%s\n" "$*"
 }
 
 function print_red() {
-    printf "\033[31m%s\033[0m\n" "$*" | tee -a "$LOGFILE" >&3
+    printf "\033[31m%s\033[0m\n" "$*"
 }
 
 function print_green() {
-    printf "\033[32m%s\033[0m\n" "$*" | tee -a "$LOGFILE" >&3
+    printf "\033[32m%s\033[0m\n" "$*"
 }
 
 #######################################################################
@@ -119,20 +118,6 @@ function set_os_version() {
 #######################################################################
 # PREPARING FOR EXECUTION
 #######################################################################
-# get real user (in case of sudo)
-# real_user=`logname`
-# export TMPDIR=`sudo -u $real_user getconf DARWIN_USER_TEMP_DIR`
-# cmd_real_user="sudo -Eu $real_user"
-
-# In order to install with the right user
-# rm -f /tmp/datadog-install-user
-# echo $real_user > /tmp/datadog-install-user
-
-mkdir -p "$KLOUDI_HOME"
-exec 3>&1 1>>"$LOGFILE" 2>&1
-
-set_os_version
-
 # Root user detection
 if [ $(echo "$UID") = "0" ]; then
     sudo_cmd=''
@@ -144,6 +129,9 @@ fi
 real_user=$(logname)
 export TMPDIR=$(sudo -u $real_user getconf DARWIN_USER_TEMP_DIR)
 cmd_real_user="sudo -Eu $real_user"
+
+mkdir -p "$KLOUDI_HOME"
+set_os_version
 
 #######################################################################
 # CHECKING REQUIREMENTS
@@ -158,12 +146,16 @@ print_green "Downloading and setting up Kloudi's server on localhost.."
 rm -rf $KLOUDI_HOME/kloudi-backend.yml
 $cmd_real_user curl -sL $BACKEND_DOWNLOAD_URL -o "kloudi-backend.yml"
 mv ./kloudi-backend.yml $KLOUDI_HOME
-docker stop $(docker ps | grep 'kloudi-*') || true
-docker rmi -f $(docker ps -a | grep 'kloudi-*') || true
+print_console "Stopping all running images of Kloudi..."
+docker stop $(docker ps -q -f "name=kloudi-*") || true
+print_console "Removing all stopped containers..."
+docker container prune -f
+print_console "Removing all old images, if any, before downloading the new ones..."
+docker rmi -f $(docker ps -a | grep kloudi-) || true
 docker-compose -f $KLOUDI_HOME/kloudi-backend.yml up -d
 
-print_green "Installing Kloudi app..."
 rm -rf ./$APP_DMG /Applications/Kloudi.app
+print_green "Installing Kloudi app..."
 $cmd_real_user curl -sSL $APP_DOWNLOAD_URL -o $APP_DMG
 hdiutil detach "/Voumes/Kloudi" >/dev/null 2>&1 || true
 hdiutil attach $APP_DMG -mountpoint "/Volumes/Kloudi" >/dev/null
