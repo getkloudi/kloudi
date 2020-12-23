@@ -29,6 +29,8 @@ services:
     image: mongo:latest
     networks:
       - kloudi-network
+    ports:
+      - 27018:27017
     restart: always
     volumes:
       - $HOME/.kloudi/db:/data/db
@@ -95,6 +97,7 @@ services:
       - kloudi-network
     volumes:
       - $HOME/.kloudi/.secret:/kloudi/.auth
+      - $HOME/.kloudi/user:/kloudi/localhost-user
 
   watchtower:
     container_name: kloudi-watchtower
