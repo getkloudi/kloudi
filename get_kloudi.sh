@@ -91,6 +91,7 @@ function set_os_version() {
     REQUIRED_OS_VERSION=10.14
 
     if [[ "$OSTYPE" == "darwin"* ]]; then
+        print_green "Current platform: Darwin based. Probably macOSX"
         OS_MAJOR_VERSION=$(sw_vers -productVersion | cut -d'.' -f1)
         OS_MINOR_VERSION=$(sw_vers -productVersion | cut -d'.' -f2)
         OS_VERSION=$OS_MAJOR_VERSION.$OS_MINOR_VERSION
@@ -101,16 +102,21 @@ function set_os_version() {
             print_red $ERROR_OS_VERSION
             exit 1
         fi
-    # elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    #     print_red $ERROR_OS
-    # elif [[ "$OSTYPE" == "cygwin" ]]; then
-    #     print_red $ERROR_OS
-    # elif [[ "$OSTYPE" == "msys" ]]; then
-    #     print_red $ERROR_OS
-    # elif [[ "$OSTYPE" == "win32" ]]; then
-    #     print_red $ERROR_OS
-    # elif [[ "$OSTYPE" == "freebsd"* ]]; then
-    #     print_red $ERROR_OS
+    elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        print_red $ERROR_OS
+        print_red "Current platform: linux-gnu based."
+    elif [[ "$OSTYPE" == "cygwin" ]]; then
+        print_red $ERROR_OS
+        print_red "Current platform: cygwin based."
+    elif [[ "$OSTYPE" == "msys" ]]; then
+        print_red $ERROR_OS
+        print_red "Current platform: msys based."
+    elif [[ "$OSTYPE" == "win32" ]]; then
+        print_red $ERROR_OS
+        print_red "Current platform: win32 based."
+    elif [[ "$OSTYPE" == "freebsd"* ]]; then
+        print_red $ERROR_OS
+        print_red "Current platform: freebsd based."
     else
         print_red $ERROR_OS
     fi
