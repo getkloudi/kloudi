@@ -25,6 +25,7 @@ For more details, head to: https://kloudi.tech/
 
  ### 💻TL;DR
  Run the command below to get started
+
  `
  bash -c "$(curl -L https://raw.githubusercontent.com/kloudi-tech/local/release/get_kloudi.sh)"
  `
