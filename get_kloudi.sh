@@ -9,9 +9,9 @@ set -u
 #   Sets the agent installation directory.
 #   Defaults to $HOME/.kloudi
 
-DEFAULT_VERSION="v1.8.0"
+DEFAULT_VERSION="v1.10.0"
 VERSION=${VERSION:-$DEFAULT_VERSION}
-APP_VERSION="v2.19.7"
+APP_VERSION="v2.21.0"
 
 APP_DOWNLOAD_URL="https://github.com/kloudi-tech/local/releases/download/$VERSION/Kloudi-$APP_VERSION.dmg"
 BACKEND_DOWNLOAD_URL="https://github.com/kloudi-tech/local/releases/download/$VERSION/docker-compose.yml"
